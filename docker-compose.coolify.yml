@@ -1,5 +1,5 @@
 # Coolify deployment configuration for Appwrite
-# This is a production-ready setup for Coolify deployment
+# Simplified version based on successful local testing
 
 version: '3.8'
 
@@ -11,57 +11,12 @@ x-logging: &x-logging
       max-size: "10m"
 
 services:
-  traefik:
-    image: traefik:2.11
-    <<: *x-logging
-    container_name: appwrite-traefik
-    command:
-      - --log.level=INFO
-      - --api.insecure=true
-      - --providers.file.directory=/storage/config
-      - --providers.file.watch=true
-      - --providers.docker=true
-      - --providers.docker.exposedByDefault=false
-      - --providers.docker.constraints=Label(`traefik.constraint-label-stack`,`appwrite`)
-      - --entrypoints.appwrite_web.address=:80
-      - --entrypoints.appwrite_websecure.address=:443
-      - --accesslog=true
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - appwrite-config:/storage/config:ro
-      - appwrite-certificates:/storage/certificates:ro
-    depends_on:
-      - appwrite
-    networks:
-      - gateway
-      - appwrite
-      - runtimes
-
   appwrite:
     container_name: appwrite
     <<: *x-logging
     image: appwrite/appwrite:1.7.4
-    ports:
-      - 9501:80
     networks:
       - appwrite
-    labels:
-      - "traefik.enable=true"
-      - "traefik.constraint-label-stack=appwrite"
-      - "traefik.docker.network=appwrite"
-      - "traefik.http.services.appwrite_api.loadbalancer.server.port=80"
-      #http
-      - traefik.http.routers.appwrite_api_http.entrypoints=appwrite_web
-      - traefik.http.routers.appwrite_api_http.rule=PathPrefix(`/`)
-      - traefik.http.routers.appwrite_api_http.service=appwrite_api
-      # https
-      - traefik.http.routers.appwrite_api_https.entrypoints=appwrite_websecure
-      - traefik.http.routers.appwrite_api_https.rule=PathPrefix(`/`)
-      - traefik.http.routers.appwrite_api_https.service=appwrite_api
-      - traefik.http.routers.appwrite_api_https.tls=true
     volumes:
       - appwrite-uploads:/storage/uploads:rw
       - appwrite-imports:/storage/imports:rw
@@ -89,6 +44,13 @@ services:
       - _APP_CONSOLE_WHITELIST_IPS=${_APP_CONSOLE_WHITELIST_IPS}
       - _APP_CONSOLE_COUNTRIES_DENYLIST=AQ
       - _APP_CONSOLE_HOSTNAMES=${_APP_CONSOLE_HOSTNAMES}
+      - _APP_DOMAIN=${_APP_DOMAIN}
+      - _APP_CONSOLE_DOMAIN=${_APP_CONSOLE_DOMAIN}
+      - _APP_DOMAIN_FUNCTIONS=${_APP_DOMAIN_FUNCTIONS}
+      - _APP_DOMAIN_SITES=${_APP_DOMAIN_SITES}
+      - _APP_DOMAIN_TARGET_CNAME=${_APP_DOMAIN_TARGET_CNAME}
+      - _APP_DOMAIN_TARGET_A=${_APP_DOMAIN_TARGET_A}
+      - _APP_DOMAIN_TARGET_AAAA=${_APP_DOMAIN_TARGET_AAAA}
       - _APP_SYSTEM_EMAIL_NAME=${_APP_SYSTEM_EMAIL_NAME}
       - _APP_SYSTEM_EMAIL_ADDRESS=${_APP_SYSTEM_EMAIL_ADDRESS}
       - _APP_SYSTEM_TEAM_EMAIL=${_APP_SYSTEM_TEAM_EMAIL}
@@ -101,13 +63,6 @@ services:
       - _APP_OPTIONS_FORCE_HTTPS=${_APP_OPTIONS_FORCE_HTTPS}
       - _APP_OPTIONS_ROUTER_FORCE_HTTPS=${_APP_OPTIONS_ROUTER_FORCE_HTTPS}
       - _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
-      - _APP_DOMAIN=${_APP_DOMAIN}
-      - _APP_CONSOLE_DOMAIN=${_APP_CONSOLE_DOMAIN}
-      - _APP_DOMAIN_FUNCTIONS=${_APP_DOMAIN_FUNCTIONS}
-      - _APP_DOMAIN_SITES=${_APP_DOMAIN_SITES}
-      - _APP_DOMAIN_TARGET_CNAME=${_APP_DOMAIN_TARGET_CNAME}
-      - _APP_DOMAIN_TARGET_A=${_APP_DOMAIN_TARGET_A}
-      - _APP_DOMAIN_TARGET_AAAA=${_APP_DOMAIN_TARGET_AAAA}
       - _APP_RULES_FORMAT=md5
       - _APP_REDIS_HOST=redis
       - _APP_REDIS_PORT=6379
@@ -120,27 +75,6 @@ services:
       - _APP_DB_PASS=${_APP_DB_PASS}
       - _APP_DB_ROOT_PASS=${_APP_DB_ROOT_PASS}
       - _APP_STORAGE_DEVICE=${_APP_STORAGE_DEVICE}
-      - _APP_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
-      - _APP_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
-      - _APP_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION}
-      - _APP_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
-      - _APP_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
-      - _APP_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
-      - _APP_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
-      - _APP_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION}
-      - _APP_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
-      - _APP_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
-      - _APP_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
-      - _APP_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION}
-      - _APP_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
-      - _APP_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
-      - _APP_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
-      - _APP_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION}
-      - _APP_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
-      - _APP_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
-      - _APP_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
-      - _APP_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION}
-      - _APP_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
       - _APP_STORAGE_ANTIVIRUS=disabled
       - _APP_STORAGE_ANTIVIRUS_HOST=clamav
       - _APP_STORAGE_ANTIVIRUS_PORT=3310
@@ -202,85 +136,6 @@ services:
       - _APP_PROJECT_REGIONS=${_APP_PROJECT_REGIONS}
       - _APP_FUNCTIONS_CREATION_ABUSE_LIMIT=${_APP_FUNCTIONS_CREATION_ABUSE_LIMIT}
       - _APP_STATS_USAGE_DUAL_WRITING_DBS=${_APP_STATS_USAGE_DUAL_WRITING_DBS}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  appwrite-console:
-    <<: *x-logging
-    container_name: appwrite-console
-    image: appwrite/console:6.1.12
-    restart: unless-stopped
-    networks:
-      - appwrite
-    labels:
-      - "traefik.enable=true"
-      - "traefik.constraint-label-stack=appwrite"
-      - "traefik.docker.network=appwrite"
-      - "traefik.http.services.appwrite_console.loadbalancer.server.port=80"
-      #ws
-      - traefik.http.routers.appwrite_console_http.entrypoints=appwrite_web
-      - traefik.http.routers.appwrite_console_http.rule=PathPrefix(`/console`)
-      - traefik.http.routers.appwrite_console_http.service=appwrite_console
-      # wss
-      - traefik.http.routers.appwrite_console_https.entrypoints=appwrite_websecure
-      - traefik.http.routers.appwrite_console_https.rule=PathPrefix(`/console`)
-      - traefik.http.routers.appwrite_console_https.service=appwrite_console
-      - traefik.http.routers.appwrite_console_https.tls=true
-
-  appwrite-realtime:
-    entrypoint: realtime
-    <<: *x-logging
-    container_name: appwrite-realtime
-    image: appwrite/appwrite:1.7.4
-    restart: unless-stopped
-    ports:
-      - 9505:80
-    labels:
-      - "traefik.enable=true"
-      - "traefik.constraint-label-stack=appwrite"
-      - "traefik.docker.network=appwrite"
-      - "traefik.http.services.appwrite_realtime.loadbalancer.server.port=80"
-      #ws
-      - traefik.http.routers.appwrite_realtime_ws.entrypoints=appwrite_web
-      - traefik.http.routers.appwrite_realtime_ws.rule=PathPrefix(`/v1/realtime`)
-      - traefik.http.routers.appwrite_realtime_ws.service=appwrite_realtime
-      # wss
-      - traefik.http.routers.appwrite_realtime_wss.entrypoints=appwrite_websecure
-      - traefik.http.routers.appwrite_realtime_wss.rule=PathPrefix(`/v1/realtime`)
-      - traefik.http.routers.appwrite_realtime_wss.service=appwrite_realtime
-      - traefik.http.routers.appwrite_realtime_wss.tls=true
-    networks:
-      - appwrite
-    volumes:
-      - appwrite-uploads:/storage/uploads:rw
-      - appwrite-imports:/storage/imports:rw
-      - appwrite-cache:/storage/cache:rw
-      - appwrite-config:/storage/config:rw
-      - appwrite-certificates:/storage/certificates:rw
-      - appwrite-functions:/storage/functions:rw
-      - appwrite-sites:/storage/sites:rw
-      - appwrite-builds:/storage/builds:rw
-    depends_on:
-      - mariadb
-      - redis
-    environment:
-      - _APP_ENV=production
-      - _APP_WORKER_PER_CORE=6
-      - _APP_OPTIONS_ABUSE=disabled
-      - _APP_OPTIONS_ROUTER_PROTECTION=disabled
-      - _APP_OPENSSL_KEY_V1=${_APP_OPENSSL_KEY_V1}
-      - _APP_REDIS_HOST=redis
-      - _APP_REDIS_PORT=6379
-      - _APP_REDIS_USER=${_APP_REDIS_USER}
-      - _APP_REDIS_PASS=${_APP_REDIS_PASS}
-      - _APP_DB_HOST=mariadb
-      - _APP_DB_PORT=3306
-      - _APP_DB_SCHEMA=appwrite
-      - _APP_DB_USER=${_APP_DB_USER}
-      - _APP_DB_PASS=${_APP_DB_PASS}
-      - _APP_USAGE_STATS=${_APP_USAGE_STATS}
-      - _APP_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
-      - _APP_DATABASE_SHARED_TABLES=${_APP_DATABASE_SHARED_TABLES}
 
   mariadb:
     image: mariadb:10.11
@@ -290,8 +145,6 @@ services:
       - appwrite
     volumes:
       - appwrite-mariadb:/var/lib/mysql:rw
-    ports:
-      - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=${_APP_DB_ROOT_PASS}
       - MYSQL_DATABASE=appwrite
@@ -309,92 +162,14 @@ services:
       --maxmemory            512mb
       --maxmemory-policy     allkeys-lru
       --maxmemory-samples    5
-    ports:
-      - "6379:6379"
     networks:
       - appwrite
     volumes:
       - appwrite-redis:/data:rw
 
-  openruntimes-executor:
-    container_name: openruntimes-executor
-    hostname: exc1
-    <<: *x-logging
-    stop_signal: SIGINT
-    image: openruntimes/executor:0.7.22
-    restart: unless-stopped
-    networks:
-      - appwrite
-      - runtimes
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - appwrite-builds:/storage/builds:rw
-      - appwrite-functions:/storage/functions:rw
-      - appwrite-sites:/storage/sites:rw
-      - /tmp:/tmp:rw
-    environment:
-      - OPR_EXECUTOR_IMAGE_PULL=enabled
-      - OPR_EXECUTOR_INACTIVE_TRESHOLD=${_APP_COMPUTE_INACTIVE_THRESHOLD}
-      - OPR_EXECUTOR_MAINTENANCE_INTERVAL=${_APP_COMPUTE_MAINTENANCE_INTERVAL}
-      - OPR_EXECUTOR_NETWORK=${_APP_COMPUTE_RUNTIMES_NETWORK}
-      - OPR_EXECUTOR_DOCKER_HUB_USERNAME=${_APP_DOCKER_HUB_USERNAME}
-      - OPR_EXECUTOR_DOCKER_HUB_PASSWORD=${_APP_DOCKER_HUB_PASSWORD}
-      - OPR_EXECUTOR_ENV=production
-      - OPR_EXECUTOR_RUNTIMES=${_APP_FUNCTIONS_RUNTIMES},${_APP_SITES_RUNTIMES}
-      - OPR_EXECUTOR_SECRET=${_APP_EXECUTOR_SECRET}
-      - OPR_EXECUTOR_RUNTIME_VERSIONS=v5
-      - OPR_EXECUTOR_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
-      - OPR_EXECUTOR_STORAGE_DEVICE=${_APP_STORAGE_DEVICE}
-      - OPR_EXECUTOR_STORAGE_S3_ACCESS_KEY=${_APP_STORAGE_S3_ACCESS_KEY}
-      - OPR_EXECUTOR_STORAGE_S3_SECRET=${_APP_STORAGE_S3_SECRET}
-      - OPR_EXECUTOR_STORAGE_S3_REGION=${_APP_STORAGE_S3_REGION}
-      - OPR_EXECUTOR_STORAGE_S3_BUCKET=${_APP_STORAGE_S3_BUCKET}
-      - OPR_EXECUTOR_STORAGE_S3_ENDPOINT=${_APP_STORAGE_S3_ENDPOINT}
-      - OPR_EXECUTOR_STORAGE_DO_SPACES_ACCESS_KEY=${_APP_STORAGE_DO_SPACES_ACCESS_KEY}
-      - OPR_EXECUTOR_STORAGE_DO_SPACES_SECRET=${_APP_STORAGE_DO_SPACES_SECRET}
-      - OPR_EXECUTOR_STORAGE_DO_SPACES_REGION=${_APP_STORAGE_DO_SPACES_REGION}
-      - OPR_EXECUTOR_STORAGE_DO_SPACES_BUCKET=${_APP_STORAGE_DO_SPACES_BUCKET}
-      - OPR_EXECUTOR_STORAGE_BACKBLAZE_ACCESS_KEY=${_APP_STORAGE_BACKBLAZE_ACCESS_KEY}
-      - OPR_EXECUTOR_STORAGE_BACKBLAZE_SECRET=${_APP_STORAGE_BACKBLAZE_SECRET}
-      - OPR_EXECUTOR_STORAGE_BACKBLAZE_REGION=${_APP_STORAGE_BACKBLAZE_REGION}
-      - OPR_EXECUTOR_STORAGE_BACKBLAZE_BUCKET=${_APP_STORAGE_BACKBLAZE_BUCKET}
-      - OPR_EXECUTOR_STORAGE_LINODE_ACCESS_KEY=${_APP_STORAGE_LINODE_ACCESS_KEY}
-      - OPR_EXECUTOR_STORAGE_LINODE_SECRET=${_APP_STORAGE_LINODE_SECRET}
-      - OPR_EXECUTOR_STORAGE_LINODE_REGION=${_APP_STORAGE_LINODE_REGION}
-      - OPR_EXECUTOR_STORAGE_LINODE_BUCKET=${_APP_STORAGE_LINODE_BUCKET}
-      - OPR_EXECUTOR_STORAGE_WASABI_ACCESS_KEY=${_APP_STORAGE_WASABI_ACCESS_KEY}
-      - OPR_EXECUTOR_STORAGE_WASABI_SECRET=${_APP_STORAGE_WASABI_SECRET}
-      - OPR_EXECUTOR_STORAGE_WASABI_REGION=${_APP_STORAGE_WASABI_REGION}
-      - OPR_EXECUTOR_STORAGE_WASABI_BUCKET=${_APP_STORAGE_WASABI_BUCKET}
-
-  openruntimes-proxy:
-    container_name: openruntimes-proxy
-    hostname: proxy
-    <<: *x-logging
-    stop_signal: SIGINT
-    image: openruntimes/proxy:0.5.5
-    networks:
-      - appwrite
-      - runtimes
-    environment:
-      - OPR_PROXY_WORKER_PER_CORE=6
-      - OPR_PROXY_ENV=production
-      - OPR_PROXY_EXECUTOR_SECRET=${_APP_EXECUTOR_SECRET}
-      - OPR_PROXY_SECRET=${_APP_EXECUTOR_SECRET}
-      - OPR_PROXY_LOGGING_CONFIG=${_APP_LOGGING_CONFIG}
-      - OPR_PROXY_ALGORITHM=random
-      - OPR_PROXY_EXECUTORS=exc1
-      - OPR_PROXY_HEALTHCHECK_INTERVAL=10000
-      - OPR_PROXY_MAX_TIMEOUT=600
-      - OPR_PROXY_HEALTHCHECK=enabled
-
 networks:
-  gateway:
-    name: gateway
   appwrite:
     name: appwrite
-  runtimes:
-    name: runtimes
 
 volumes:
   appwrite-mariadb:
