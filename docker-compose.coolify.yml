@@ -33,6 +33,11 @@ services:
       - php
       - -e
       - app/http.php
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.appwrite.rule=Host(`${SERVICE_FQDN_APPWRITE}`)"
+      - "traefik.http.routers.appwrite.entrypoints=web"
+      - "traefik.http.services.appwrite.loadbalancer.server.port=80"
     environment:
       - _APP_ENV=production
       - _APP_EDITION=self-hosted
