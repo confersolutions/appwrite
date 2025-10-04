@@ -148,6 +148,15 @@ services:
       - MARIADB_AUTO_UPGRADE=1
     command: "mysqld --innodb-flush-method=fsync"
 
+  appwrite-console:
+    container_name: appwrite-console
+    <<: *x-logging
+    image: appwrite/console:6.1.12
+    networks:
+      - appwrite
+    depends_on:
+      - appwrite
+
   redis:
     image: redis:7.2.4-alpine
     <<: *x-logging
