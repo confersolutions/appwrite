@@ -46,6 +46,11 @@ services:
       - _APP_CONSOLE_HOSTNAMES=${SERVICE_FQDN_APPWRITE}
       - _APP_DOMAIN=${SERVICE_FQDN_APPWRITE}
       - _APP_CONSOLE_DOMAIN=${SERVICE_FQDN_APPWRITE}
+      - _APP_DOMAIN_FUNCTIONS=functions.${SERVICE_FQDN_APPWRITE}
+      - _APP_DOMAIN_SITES=sites.${SERVICE_FQDN_APPWRITE}
+      - _APP_DOMAIN_TARGET_CNAME=test.${SERVICE_FQDN_APPWRITE}
+      - _APP_DOMAIN_TARGET_A=207.244.226.234
+      - _APP_DOMAIN_TARGET_AAAA=::1
       - _APP_SYSTEM_EMAIL_NAME=${_APP_SYSTEM_EMAIL_NAME}
       - _APP_SYSTEM_EMAIL_ADDRESS=${_APP_SYSTEM_EMAIL_ADDRESS}
       - _APP_SYSTEM_TEAM_EMAIL=${_APP_SYSTEM_TEAM_EMAIL}
@@ -147,15 +152,6 @@ services:
       - MYSQL_PASSWORD=${_APP_DB_PASS}
       - MARIADB_AUTO_UPGRADE=1
     command: "mysqld --innodb-flush-method=fsync"
-
-  appwrite-console:
-    container_name: appwrite-console
-    <<: *x-logging
-    image: appwrite/console:6.1.12
-    networks:
-      - appwrite
-    depends_on:
-      - appwrite
 
   redis:
     image: redis:7.2.4-alpine
