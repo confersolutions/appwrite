@@ -142,6 +142,28 @@ services:
       - _APP_FUNCTIONS_CREATION_ABUSE_LIMIT=${_APP_FUNCTIONS_CREATION_ABUSE_LIMIT}
       - _APP_STATS_USAGE_DUAL_WRITING_DBS=${_APP_STATS_USAGE_DUAL_WRITING_DBS}
 
+  appwrite-console:
+    container_name: appwrite-console
+    <<: *x-logging
+    image: appwrite/console:6.1.12
+    networks:
+      - appwrite
+    depends_on:
+      - appwrite
+    labels:
+      # Caddy (Coolify) – route only /console/* to this service on the same domain
+      - 'caddy_0=https://${SERVICE_FQDN_APPWRITE}'
+      - 'caddy_0.handle_path=/console/*'
+      - 'caddy_0.handle_path.0_reverse_proxy={{upstreams}}'
+      - 'caddy_0.encode=zstd gzip'
+      - 'caddy_0.header=-Server'
+      - 'caddy_0.try_files={path} /index.html /index.php'
+      # (Optional) Traefik labels – harmless if Traefik not active
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.appwrite_console.rule=Host(`${SERVICE_FQDN_APPWRITE}`) && PathPrefix(`/console`)'
+      - 'traefik.http.routers.appwrite_console.entrypoints=web'
+      - 'traefik.http.services.appwrite_console.loadbalancer.server.port=80'
+
   mariadb:
     image: mariadb:10.11
     container_name: appwrite-mariadb
