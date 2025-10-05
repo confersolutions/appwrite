@@ -168,7 +168,7 @@ services:
       - appwrite
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.appwrite_console.rule=Host(`${SERVICE_FQDN_APPWRITE}`) && PathPrefix(`/console`)"
+      - "traefik.http.routers.appwrite_console.rule=Host(`${SERVICE_FQDN_APPWRITE_CONSOLE}`)"
       - "traefik.http.routers.appwrite_console.entrypoints=web"
       - "traefik.http.services.appwrite_console.loadbalancer.server.port=80"
 
