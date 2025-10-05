@@ -151,16 +151,16 @@ services:
     depends_on:
       - appwrite
     labels:
-      # Caddy (Coolify) – route only /console/* to this service on the same domain
-      - 'caddy_0=https://${SERVICE_FQDN_APPWRITE}'
-      - 'caddy_0.handle_path=/console/*'
+      # Caddy (Coolify) – dedicate separate host for console
+      - 'caddy_0=https://${SERVICE_FQDN_APPWRITE_CONSOLE}'
+      - 'caddy_0.handle_path=/*'
       - 'caddy_0.handle_path.0_reverse_proxy={{upstreams}}'
       - 'caddy_0.encode=zstd gzip'
       - 'caddy_0.header=-Server'
       - 'caddy_0.try_files={path} /index.html /index.php'
       # (Optional) Traefik labels – harmless if Traefik not active
       - 'traefik.enable=true'
-      - 'traefik.http.routers.appwrite_console.rule=Host(`${SERVICE_FQDN_APPWRITE}`) && PathPrefix(`/console`)'
+      - 'traefik.http.routers.appwrite_console.rule=Host(`${SERVICE_FQDN_APPWRITE_CONSOLE}`)'
       - 'traefik.http.routers.appwrite_console.entrypoints=web'
       - 'traefik.http.services.appwrite_console.loadbalancer.server.port=80'
 
