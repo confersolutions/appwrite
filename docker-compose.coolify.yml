@@ -158,6 +158,20 @@ services:
       - MARIADB_AUTO_UPGRADE=1
     command: "mysqld --innodb-flush-method=fsync"
 
+  appwrite-console:
+    container_name: appwrite-console
+    <<: *x-logging
+    image: appwrite/console:6.1.12
+    networks:
+      - appwrite
+    depends_on:
+      - appwrite
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.appwrite_console.rule=Host(`${SERVICE_FQDN_APPWRITE}`) && PathPrefix(`/console`)"
+      - "traefik.http.routers.appwrite_console.entrypoints=web"
+      - "traefik.http.services.appwrite_console.loadbalancer.server.port=80"
+
   redis:
     image: redis:7.2.4-alpine
     <<: *x-logging
